@@ -1,5 +1,6 @@
 package cloudFileStorage.cloudfilestorage.controllers;
 
+import cloudFileStorage.cloudfilestorage.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,10 +14,15 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/sign-up")
     public ResponseEntity<Map<String, String>> signUpUser(){
-        return null;
+        authService.signUpUser();
     }
 
     @GetMapping("/test")

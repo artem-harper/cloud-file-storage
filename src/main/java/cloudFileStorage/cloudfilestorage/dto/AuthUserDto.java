@@ -1,7 +1,7 @@
 package cloudFileStorage.cloudfilestorage.dto;
 
 
-public class LoginUserDto {
+public class AuthUserDto {
     private String username;
     private String password;
 
