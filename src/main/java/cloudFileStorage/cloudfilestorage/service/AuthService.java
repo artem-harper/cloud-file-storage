@@ -1,6 +1,7 @@
 package cloudFileStorage.cloudfilestorage.service;
 
 import cloudFileStorage.cloudfilestorage.dto.AuthUserDto;
+import cloudFileStorage.cloudfilestorage.dto.SignedUpUserDto;
 import cloudFileStorage.cloudfilestorage.entity.User;
 import cloudFileStorage.cloudfilestorage.repository.UserRepository;
 import org.modelmapper.ModelMapper;
@@ -18,8 +19,8 @@ public class AuthService {
         this.modelMapper = modelMapper;
     }
 
-    public void signUpUser(AuthUserDto authUserDto) {
+    public SignedUpUserDto signUpUser(AuthUserDto authUserDto) {
         User user = modelMapper.map(authUserDto, User.class);
-        return userRepository.save(user);
+        return modelMapper.map(userRepository.save(user), SignedUpUserDto.class);
     }
 }

@@ -1,12 +1,11 @@
-package cloudFileStorage.cloudfilestorage.controllers;
+package cloudFileStorage.cloudfilestorage.controller;
 
+import cloudFileStorage.cloudfilestorage.dto.AuthUserDto;
+import cloudFileStorage.cloudfilestorage.dto.SignedUpUserDto;
 import cloudFileStorage.cloudfilestorage.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -21,9 +20,14 @@ public class AuthController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<Map<String, String>> signUpUser(){
-        authService.signUpUser();
+    public ResponseEntity<SignedUpUserDto> signUpUser(@RequestBody AuthUserDto authUserDto){
+        SignedUpUserDto signUpUser = authService.signUpUser(authUserDto);
+
+        return ResponseEntity.ok()
+                .body(signUpUser);
+
     }
+
 
     @GetMapping("/test")
     public ResponseEntity<Map<String, String>> test(){

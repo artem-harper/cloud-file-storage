@@ -10,12 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class AuthUserDto {
+public class SignedUpUserDto {
     @JsonProperty("username")
     private String username;
-
-    @JsonProperty("password")
-    private String password;
-
-
 }
