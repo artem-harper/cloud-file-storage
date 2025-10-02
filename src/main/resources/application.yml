@@ -2,6 +2,7 @@ server:
   port: 8080
 
 spring:
+
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5433/cloud_db
@@ -17,3 +18,8 @@ spring:
     user: postgres
     password: pass
     callback-locations: db/migration
+
+  data:
+    redis:
+      port: 6380
+      host: localhost

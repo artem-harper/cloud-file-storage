@@ -10,7 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class SignedUpUserDto {
+public class SignedUserDto {
     @JsonProperty("username")
     private String username;
 }

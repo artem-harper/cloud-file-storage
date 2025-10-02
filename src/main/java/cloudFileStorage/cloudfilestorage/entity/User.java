@@ -1,11 +1,17 @@
 package cloudFileStorage.cloudfilestorage.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
+import java.io.Serializable;
 
-
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 @Entity
 @Table(name="Users")
-public class User {
+public class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

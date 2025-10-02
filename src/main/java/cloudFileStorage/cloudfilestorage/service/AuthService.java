@@ -1,10 +1,18 @@
 package cloudFileStorage.cloudfilestorage.service;
 
 import cloudFileStorage.cloudfilestorage.dto.AuthUserDto;
-import cloudFileStorage.cloudfilestorage.dto.SignedUpUserDto;
+
+import cloudFileStorage.cloudfilestorage.dto.SignedUserDto;
 import cloudFileStorage.cloudfilestorage.entity.User;
+import cloudFileStorage.cloudfilestorage.exceptions.UserAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.repository.UserRepository;
+import jakarta.servlet.http.HttpSession;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,15 +20,35 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final AuthenticationManager authenticationManager;
 
-
-    public AuthService(UserRepository userRepository, ModelMapper modelMapper) {
+    public AuthService(UserRepository userRepository, ModelMapper modelMapper, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+        this.authenticationManager = authenticationManager;
     }
 
-    public SignedUpUserDto signUpUser(AuthUserDto authUserDto) {
+    public SignedUserDto signUpUser(AuthUserDto authUserDto) {
+
+        if (userRepository.findByUsername(authUserDto.getUsername()).isPresent()) {
+            throw new UserAlreadyExistException();
+        }
+
         User user = modelMapper.map(authUserDto, User.class);
-        return modelMapper.map(userRepository.save(user), SignedUpUserDto.class);
+
+        return modelMapper.map(userRepository.save(user), SignedUserDto.class);
+    }
+
+    public SignedUserDto signInUser(AuthUserDto authUserDto) {
+        Authentication authentication = new UsernamePasswordAuthenticationToken(authUserDto.getUsername(), authUserDto.getPassword());
+
+        Authentication authenticate = authenticationManager.authenticate(authentication);
+
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        return modelMapper.map(authenticate.getPrincipal(), SignedUserDto.class);
+    }
+
+    public void logoutUser() {
+
     }
 }
