@@ -1,9 +1,12 @@
 package cloudFileStorage.cloudfilestorage.config;
 
+import cloudFileStorage.cloudfilestorage.controller.utilControllers.CustomAuthenticationEntryPoint;
 import cloudFileStorage.cloudfilestorage.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +17,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+
 
 @RequiredArgsConstructor
 @EnableWebSecurity
@@ -21,7 +26,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
-
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -46,19 +51,31 @@ public class SecurityConfig {
                                 "/*.jpg",
                                 "/*.svg",
                                 "/manifest.json").permitAll()
+                        .requestMatchers("/api/auth/sign-out").authenticated()
                         .anyRequest().authenticated()
                 )
-                .logout((logout) -> logout.logoutUrl("/api/auth/sign-out"))
+                .logout((logout) -> logout.logoutUrl("/api/auth/sign-out")
+                        .logoutSuccessHandler(logoutSuccessHandler()))
                 .userDetailsService(userDetailsService)
-                .csrf(CsrfConfigurer::disable)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .securityContext(securityContext -> securityContext
-                        .requireExplicitSave(false)
-                ).formLogin(AbstractHttpConfigurer::disable)
+                        .requireExplicitSave(false))
+                .csrf(CsrfConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .build();
+    }
+
+    @Bean
+    public LogoutSuccessHandler logoutSuccessHandler() {
+        return (request, response, authentication) -> {
+            response.setStatus(HttpStatus.NO_CONTENT.value());
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        };
     }
 
     @Bean

@@ -19,6 +19,7 @@ public abstract class BaseIntegrationTest {
     protected static final PostgreSQLContainer<?> postgres =
             new PostgreSQLContainer<>(DockerImageName.parse("postgres:17"));
 
+
     static {
         postgres.start();
         runFlywayMigrations();

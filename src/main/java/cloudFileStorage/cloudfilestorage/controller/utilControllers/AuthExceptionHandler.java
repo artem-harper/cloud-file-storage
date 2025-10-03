@@ -1,20 +1,20 @@
-package cloudFileStorage.cloudfilestorage.controller;
+package cloudFileStorage.cloudfilestorage.controller.utilControllers;
 
 import cloudFileStorage.cloudfilestorage.exceptions.UserAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.util.ErrorResponseMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+
+import java.nio.file.AccessDeniedException;
 
 @Slf4j
-@RestControllerAdvice
+@ControllerAdvice
 public class AuthExceptionHandler {
 
 
@@ -33,7 +33,7 @@ public class AuthExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponseMessage> authExceptionHandle(AuthenticationException ex){
         log.info("FAILED AUTHORIZATION");
-        return new ResponseEntity<>(new ErrorResponseMessage("Invalid username or password"), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(new ErrorResponseMessage("Неправильный логин или пароль"), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)

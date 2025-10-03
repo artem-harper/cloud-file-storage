@@ -16,12 +16,12 @@ public class AuthUserDto {
 
     @JsonProperty("username")
     @NotNull(message = "Username can't be empty")
-    @Size(min = 5, max = 20, message = "Username length should between 4 and 30 symbols")
+    @Size(min = 5, max = 20, message = "Username length should between 4 and 20 symbols")
     private String username;
 
     @JsonProperty("password")
     @NotNull(message = "Password can't be empty")
-    @Size(min = 5, max = 20, message = "Password length should between 4 and 30 symbols")
+    @Size(min = 5, max = 20, message = "Password length should between 4 and 20 symbols")
     private String password;
 
 

@@ -20,5 +20,4 @@ public class SessionConfig {
         config.setPassword(RedisPassword.of("pass"));
         return new LettuceConnectionFactory(config);
     }
-
 }

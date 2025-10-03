@@ -47,7 +47,4 @@ public class AuthService {
         return modelMapper.map(authenticate.getPrincipal(), SignedUserDto.class);
     }
 
-    public void logoutUser() {
-
-    }
 }
