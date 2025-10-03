@@ -5,17 +5,21 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-public class UserDetailsImpl implements UserDetails {
+public class UserDetailsImpl implements UserDetails, Serializable {
 
-    private final User user;
+    private User user;
 
     public UserDetailsImpl(User user) {
         this.user = user;
     }
 
+    public UserDetailsImpl(){
+
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

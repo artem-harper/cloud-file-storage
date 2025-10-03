@@ -6,27 +6,23 @@ import cloudFileStorage.cloudfilestorage.dto.SignedUserDto;
 import cloudFileStorage.cloudfilestorage.entity.User;
 import cloudFileStorage.cloudfilestorage.exceptions.UserAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.repository.UserRepository;
-import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final AuthenticationManager authenticationManager;
-
-    public AuthService(UserRepository userRepository, ModelMapper modelMapper, AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.modelMapper = modelMapper;
-        this.authenticationManager = authenticationManager;
-    }
+    private final PasswordEncoder passwordEncoder;
 
     public SignedUserDto signUpUser(AuthUserDto authUserDto) {
 
@@ -34,6 +30,7 @@ public class AuthService {
             throw new UserAlreadyExistException();
         }
 
+        authUserDto.setPassword(passwordEncoder.encode(authUserDto.getPassword()));
         User user = modelMapper.map(authUserDto, User.class);
 
         return modelMapper.map(userRepository.save(user), SignedUserDto.class);
