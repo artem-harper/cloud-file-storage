@@ -32,9 +32,8 @@ public class AuthController {
     }
 
     @PostMapping("/sign-out")
-    public ResponseEntity<SignedUserDto> logoutUser() {
-        authService.logoutUser();
-        return null;
+    public ResponseEntity<Void> logoutUser() {
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/test")

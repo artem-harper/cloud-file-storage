@@ -12,7 +12,6 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 5
 
-
   flyway:
     url: jdbc:postgresql://localhost:5433/cloud_db
     user: postgres

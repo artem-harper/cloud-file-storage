@@ -39,6 +39,6 @@ public class AuthExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseMessage> unknownExceptionHandle(Exception ex){
         log.warn("UNKNOWN EXCEPTION");
-        return new ResponseEntity<>(new ErrorResponseMessage("Unknown error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new ErrorResponseMessage(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
