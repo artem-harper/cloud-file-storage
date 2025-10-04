@@ -1,6 +1,11 @@
 server:
   port: 8080
 
+minio:
+  endpoint: "http://localhost:9000"
+  access-key: "minioadmin"
+  secret-key: "minioadmin"
+
 spring:
 
   datasource:

@@ -1,7 +1,6 @@
 package cloudFileStorage.cloudfilestorage;
 
 import cloudFileStorage.cloudfilestorage.dto.AuthUserDto;
-import cloudFileStorage.cloudfilestorage.dto.SignedUserDto;
 import cloudFileStorage.cloudfilestorage.exceptions.UserAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.repository.UserRepository;
 import cloudFileStorage.cloudfilestorage.service.AuthService;
