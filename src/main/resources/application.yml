@@ -2,28 +2,31 @@ server:
   port: 8080
 
 minio:
-  endpoint: "http://localhost:9000"
-  access-key: "minioadmin"
-  secret-key: "minioadmin"
+  endpoint: ${MINIO_ENDPOINT}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  root-bucket: "user-files"
 
 spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5433/cloud_db
-    username: postgres
-    password: pass
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
 
   flyway:
-    url: jdbc:postgresql://localhost:5433/cloud_db
-    user: postgres
-    password: pass
+    url: ${DATABASE_URL}
+    user: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     callback-locations: db/migration
 
   data:
     redis:
-      port: 6380
-      host: localhost
+      port: ${REDIS_PORT}
+      host: ${REDIS_HOST}
+
+
+  config:
+    import: optional:file:.env.dev[.properties]
