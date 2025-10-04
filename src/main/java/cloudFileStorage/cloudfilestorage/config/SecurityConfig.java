@@ -1,6 +1,6 @@
 package cloudFileStorage.cloudfilestorage.config;
 
-import cloudFileStorage.cloudfilestorage.controller.utilControllers.CustomAuthenticationEntryPoint;
+import cloudFileStorage.cloudfilestorage.security.CustomAuthenticationEntryPoint;
 import cloudFileStorage.cloudfilestorage.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +39,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/sign-in",
                                 "/api/auth/sign-up",
+                                "/login",
+                                "/registration",
                                 "/",
                                 "/index.html",
                                 "/static/**",
@@ -50,7 +52,8 @@ public class SecurityConfig {
                                 "/*.png",
                                 "/*.jpg",
                                 "/*.svg",
-                                "/manifest.json").permitAll()
+                                "/manifest.json",
+                                "/favicon.ico").permitAll()
                         .requestMatchers("/api/auth/sign-out").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -61,7 +64,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                        .invalidSessionUrl("/"))
                 .securityContext(securityContext -> securityContext
                         .requireExplicitSave(false))
                 .csrf(CsrfConfigurer::disable)

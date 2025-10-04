@@ -1,4 +1,4 @@
-package cloudFileStorage.cloudfilestorage.controller.utilControllers;
+package cloudFileStorage.cloudfilestorage.security;
 
 import cloudFileStorage.cloudfilestorage.util.ErrorResponseMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +24,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
+
 
         String errorResponse = objectMapper.writeValueAsString(new ErrorResponseMessage("Пользователь не авторизован"));
         response.getWriter().write(errorResponse);
