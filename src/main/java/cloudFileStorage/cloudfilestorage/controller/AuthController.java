@@ -35,9 +35,4 @@ public class AuthController {
     public ResponseEntity<SignedUserDto> logoutUser() {
         return new ResponseEntity<>(new SignedUserDto(), HttpStatus.NO_CONTENT);
     }
-
-    @GetMapping("/test")
-    public ResponseEntity<Map<String, String>> test() {
-        return new ResponseEntity<>(Map.of("test", "work"), HttpStatus.OK);
-    }
 }

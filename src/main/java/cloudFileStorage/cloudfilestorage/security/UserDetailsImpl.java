@@ -21,9 +21,14 @@ public class UserDetailsImpl implements UserDetails, Serializable {
 
     }
 
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
+    }
+
+    public Integer getId(){
+        return user.getId();
     }
 
     @Override

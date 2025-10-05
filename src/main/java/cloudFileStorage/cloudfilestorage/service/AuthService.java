@@ -25,17 +25,20 @@ public class AuthService {
     private final ModelMapper modelMapper;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
+    private final UserFileService userFileService;
 
-    public SignedUserDto signUpUser(AuthUserDto authUserDto) {
+    public SignedUserDto signUpUser(AuthUserDto authUserDto){
 
         if (userRepository.findByUsername(authUserDto.getUsername()).isPresent()) {
             throw new UserAlreadyExistException();
         }
 
         authUserDto.setPassword(passwordEncoder.encode(authUserDto.getPassword()));
-        User user = modelMapper.map(authUserDto, User.class);
+        User signedUser = userRepository.save(modelMapper.map(authUserDto, User.class));
 
-        return modelMapper.map(userRepository.save(user), SignedUserDto.class);
+        userFileService.createUserFolder(signedUser.getId());
+
+        return modelMapper.map(signedUser, SignedUserDto.class);
     }
 
     public SignedUserDto signInUser(AuthUserDto authUserDto) {
