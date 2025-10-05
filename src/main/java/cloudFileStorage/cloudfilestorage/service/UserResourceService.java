@@ -5,6 +5,9 @@ import cloudFileStorage.cloudfilestorage.dto.ResourceType;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
+import io.minio.messages.DeleteError;
+import io.minio.messages.DeleteObject;
+import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.modelmapper.ModelMapper;
@@ -12,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -63,13 +68,7 @@ public class UserResourceService {
 
         } catch (ErrorResponseException e) {
 
-            boolean isFolderExist = minioClient.listObjects(ListObjectsArgs.builder()
-                    .bucket(usersBucket)
-                    .prefix(userFolder + path + delimetr)
-                    .maxKeys(1)
-                    .build()).iterator().hasNext();
-
-            if (!isFolderExist) {
+            if (!isFolderExist(userFolder, path)) {
                 throw new ResourceNotFoundException();
             }
 
@@ -82,25 +81,54 @@ public class UserResourceService {
     @SneakyThrows
     public void deleteResource(String userFolder, String path) {
 
+        List<DeleteObject> list = new ArrayList<>();
+
         try {
-            minioClient.getObject(GetObjectArgs.builder()
+            GetObjectResponse file = minioClient.getObject(GetObjectArgs.builder()
                     .bucket(usersBucket)
                     .object(userFolder + path)
                     .build());
+
+            list.add(new DeleteObject(userFolder + path));
         } catch (ErrorResponseException e) {
-            throw new ResourceNotFoundException();
+
+            if (!isFolderExist(userFolder, path)) {
+                throw new ResourceNotFoundException();
+            }
+
+            Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(usersBucket)
+                    .prefix(userFolder + path + '/')
+                    .build());
+
+            for (Result<Item> result : results) {
+                list.add(new DeleteObject(result.get().objectName()));
+            }
+
         }
 
-
-        minioClient.removeObject(RemoveObjectArgs.builder()
+        Iterable<Result<DeleteError>> results = minioClient.removeObjects(RemoveObjectsArgs.builder()
                 .bucket(usersBucket)
-                .object(userFolder + path)
-
+                .objects(list)
                 .build());
+
+        for (Result<DeleteError> result : results) {
+            DeleteError deleteError = result.get();
+        }
     }
+
 
     public void getFolderInfo(String path) {
     }
 
+    public boolean isFolderExist(String userFolder, String path) {
+
+        return minioClient.listObjects(ListObjectsArgs.builder()
+                .bucket(usersBucket)
+                .prefix(userFolder + path + '/')
+                .maxKeys(1)
+                .build()).iterator().hasNext();
+
+    }
 
 }
