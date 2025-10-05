@@ -1,5 +1,5 @@
 package cloudFileStorage.cloudfilestorage.dto;
 
-public enum FileType {
+public enum ResourceType {
     FILE, DIRECTORY
 }

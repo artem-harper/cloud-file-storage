@@ -8,13 +8,13 @@ import lombok.*;
 @AllArgsConstructor
 @Setter
 @Getter
-public class FileInfoDto {
+public class ResourceInfoDto {
 
     String path;
     String name;
 
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     long size;
-    FileType fileType;
+    ResourceType resourceType;
 
 }

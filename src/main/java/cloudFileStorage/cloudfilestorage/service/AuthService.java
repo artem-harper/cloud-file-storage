@@ -25,7 +25,7 @@ public class AuthService {
     private final ModelMapper modelMapper;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
-    private final UserFileService userFileService;
+    private final UserResourceService userResourceService;
 
     public SignedUserDto signUpUser(AuthUserDto authUserDto){
 
@@ -36,7 +36,7 @@ public class AuthService {
         authUserDto.setPassword(passwordEncoder.encode(authUserDto.getPassword()));
         User signedUser = userRepository.save(modelMapper.map(authUserDto, User.class));
 
-        userFileService.createUserFolder(signedUser.getId());
+        userResourceService.createUserFolder(signedUser.getId());
 
         return modelMapper.map(signedUser, SignedUserDto.class);
     }

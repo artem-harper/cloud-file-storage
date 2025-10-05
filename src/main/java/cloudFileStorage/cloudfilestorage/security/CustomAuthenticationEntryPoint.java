@@ -25,7 +25,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-
         String errorResponse = objectMapper.writeValueAsString(new ErrorResponseMessage("Пользователь не авторизован"));
         response.getWriter().write(errorResponse);
     }

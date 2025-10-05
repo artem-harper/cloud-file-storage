@@ -1,8 +1,8 @@
 package cloudFileStorage.cloudfilestorage.service;
 
-import cloudFileStorage.cloudfilestorage.dto.FileInfoDto;
-import cloudFileStorage.cloudfilestorage.dto.FileType;
-import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotExistException;
+import cloudFileStorage.cloudfilestorage.dto.ResourceInfoDto;
+import cloudFileStorage.cloudfilestorage.dto.ResourceType;
+import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import java.io.ByteArrayInputStream;
 
 @Service
 @RequiredArgsConstructor
-public class UserFileService {
+public class UserResourceService {
 
 
     private final MinioClient minioClient;
@@ -39,15 +39,14 @@ public class UserFileService {
     }
 
     @SneakyThrows
-    public FileInfoDto getResourceInfo(String path, String userFolder) {
+    public ResourceInfoDto getResourceInfo(String userFolder, String path) {
 
         char delimetr = '/';
-
         int lastIndex = path.lastIndexOf(delimetr);
         String fileName = path.substring(lastIndex + 1);
         String filePath = lastIndex == -1 ? "/" : path.substring(0, lastIndex + 1);
 
-        FileInfoDto fileInfoDto = FileInfoDto.builder()
+        ResourceInfoDto resourceInfoDto = ResourceInfoDto.builder()
                 .path(filePath)
                 .name(fileName)
                 .build();
@@ -59,8 +58,8 @@ public class UserFileService {
                             .build())
                     .size();
 
-            fileInfoDto.setSize(fileSize);
-            fileInfoDto.setFileType(FileType.FILE);
+            resourceInfoDto.setSize(fileSize);
+            resourceInfoDto.setResourceType(ResourceType.FILE);
 
         } catch (ErrorResponseException e) {
 
@@ -70,18 +69,38 @@ public class UserFileService {
                     .maxKeys(1)
                     .build()).iterator().hasNext();
 
-            if (!isFolderExist){
-                throw new ResourceNotExistException();
+            if (!isFolderExist) {
+                throw new ResourceNotFoundException();
             }
 
-            fileInfoDto.setFileType(FileType.DIRECTORY);
+            resourceInfoDto.setResourceType(ResourceType.DIRECTORY);
         }
 
-        return fileInfoDto;
+        return resourceInfoDto;
     }
 
+    @SneakyThrows
+    public void deleteResource(String userFolder, String path) {
+
+        try {
+            minioClient.getObject(GetObjectArgs.builder()
+                    .bucket(usersBucket)
+                    .object(userFolder + path)
+                    .build());
+        } catch (ErrorResponseException e) {
+            throw new ResourceNotFoundException();
+        }
+
+
+        minioClient.removeObject(RemoveObjectArgs.builder()
+                .bucket(usersBucket)
+                .object(userFolder + path)
+
+                .build());
+    }
 
     public void getFolderInfo(String path) {
     }
+
 
 }
