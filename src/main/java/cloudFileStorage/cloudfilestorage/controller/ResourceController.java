@@ -2,10 +2,8 @@ package cloudFileStorage.cloudfilestorage.controller;
 
 import cloudFileStorage.cloudfilestorage.dto.ResourceInfoDto;
 import cloudFileStorage.cloudfilestorage.security.UserDetailsImpl;
-import cloudFileStorage.cloudfilestorage.service.UserResourceService;
-import cloudFileStorage.cloudfilestorage.util.ErrorResponseMessage;
+import cloudFileStorage.cloudfilestorage.service.ResourceService;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.Parameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +17,7 @@ import java.io.InputStream;
 @RequestMapping("/api/resource")
 public class ResourceController {
 
-    private final UserResourceService userResourceService;
+    private final ResourceService resourceService;
     private final UserController userController;
 
     @GetMapping()
@@ -28,7 +26,7 @@ public class ResourceController {
 
         String userFolder = "user-%s-files/".formatted(userDetails.getId());
 
-        ResourceInfoDto resourceInfo = userResourceService.getResourceInfo(userFolder, path);
+        ResourceInfoDto resourceInfo = resourceService.getResourceInfo(userFolder, path);
 
         return new ResponseEntity<>(resourceInfo, HttpStatus.OK);
     }
@@ -39,7 +37,7 @@ public class ResourceController {
 
         String userFolder = "user-%s-files/".formatted(userDetails.getId());
 
-        userResourceService.deleteResource(userFolder, path);
+        resourceService.deleteResource(userFolder, path);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -50,7 +48,7 @@ public class ResourceController {
 
         String userFolder = "user-%s-files/".formatted(userDetails.getId());
 
-        InputStream inputStream = userResourceService.downloadResource(userFolder, path);
+        InputStream inputStream = resourceService.downloadResource(userFolder, path);
 
         return ResponseEntity
                 .ok()

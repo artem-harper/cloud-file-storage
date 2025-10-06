@@ -19,11 +19,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.netty.util.internal.PlatformDependent.getObject;
-
 @Service
 @RequiredArgsConstructor
-public class UserResourceService {
+public class ResourceService {
 
 
     private final MinioClient minioClient;
