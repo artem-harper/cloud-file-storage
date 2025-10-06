@@ -15,8 +15,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.netty.util.internal.PlatformDependent.getObject;
 
 @Service
 @RequiredArgsConstructor
@@ -117,8 +120,16 @@ public class UserResourceService {
         }
     }
 
+    @SneakyThrows
+    public InputStream downloadResource(String userFolder, String path) {
 
-    public void getFolderInfo(String path) {
+        String fileName = path.substring(path.lastIndexOf('/')+1);
+
+        return minioClient.getObject(GetObjectArgs.builder()
+                        .bucket(usersBucket)
+                        .object(userFolder+path)
+                .build());
+
     }
 
     public boolean isFolderExist(String userFolder, String path) {
@@ -130,5 +141,6 @@ public class UserResourceService {
                 .build()).iterator().hasNext();
 
     }
+
 
 }

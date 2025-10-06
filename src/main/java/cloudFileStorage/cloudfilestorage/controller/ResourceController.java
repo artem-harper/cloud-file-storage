@@ -5,20 +5,24 @@ import cloudFileStorage.cloudfilestorage.security.UserDetailsImpl;
 import cloudFileStorage.cloudfilestorage.service.UserResourceService;
 import cloudFileStorage.cloudfilestorage.util.ErrorResponseMessage;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.Parameter;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.InputStream;
+
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/resource")
 public class ResourceController {
 
     private final UserResourceService userResourceService;
     private final UserController userController;
 
-    @GetMapping("/resource")
+    @GetMapping()
     public ResponseEntity<ResourceInfoDto> getResourceInfo(@RequestParam("path") String path,
                                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
@@ -29,9 +33,9 @@ public class ResourceController {
         return new ResponseEntity<>(resourceInfo, HttpStatus.OK);
     }
 
-    @DeleteMapping("/resource")
+    @DeleteMapping()
     public ResponseEntity<Void> deleteResource(@RequestParam("path") String path,
-                                                          @AuthenticationPrincipal UserDetailsImpl userDetails){
+                                               @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         String userFolder = "user-%s-files/".formatted(userDetails.getId());
 
@@ -40,9 +44,20 @@ public class ResourceController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/directory")
-    public ResponseEntity<ResourceInfoDto> getFolderFilesInfo(@RequestParam("path") String path) {
+    @GetMapping("/download")
+    public ResponseEntity<InputStream> downloadResource(@RequestParam("path")  String path,
+                                                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        return null;
+        String userFolder = "user-%s-files/".formatted(userDetails.getId());
+
+        InputStream inputStream = userResourceService.downloadResource(userFolder, path);
+
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(inputStream);
     }
+
+
+
 }
