@@ -13,7 +13,6 @@ import lombok.SneakyThrows;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -45,61 +44,70 @@ public class ResourceService {
     }
 
     @SneakyThrows
-    public ResourceInfoDto getResourceInfo(String userFolder, String path) {
+    public ResourceInfoDto getResourceInfo(String path) {
+
+        if (path.endsWith("/")){
+            path = path.substring(0, path.lastIndexOf("/"));
+        }
 
         char delimetr = '/';
         int lastIndex = path.lastIndexOf(delimetr);
-        String fileName = path.substring(lastIndex + 1);
-        String filePath = lastIndex == -1 ? "/" : path.substring(0, lastIndex + 1);
+        String resourceName = path.substring(lastIndex + 1);
+        String resourcePath = path.substring(path.indexOf(delimetr) + 1, path.lastIndexOf(delimetr)+1);
+
+        if (resourcePath.isEmpty()){
+            resourcePath="/";
+        }
 
         ResourceInfoDto resourceInfoDto = ResourceInfoDto.builder()
-                .path(filePath)
-                .name(fileName)
+                .path(resourcePath)
+                .name(resourceName)
                 .build();
 
         try {
             long fileSize = minioClient.statObject(StatObjectArgs.builder()
                             .bucket(usersBucket)
-                            .object(userFolder + path)
+                            .object(path)
                             .build())
                     .size();
 
             resourceInfoDto.setSize(fileSize);
-            resourceInfoDto.setResourceType(ResourceType.FILE);
+            resourceInfoDto.setType(ResourceType.FILE);
 
         } catch (ErrorResponseException e) {
 
-            if (!isFolderExist(userFolder, path)) {
+            if (!isFolderExist(path)) {
                 throw new ResourceNotFoundException();
             }
 
-            resourceInfoDto.setResourceType(ResourceType.DIRECTORY);
+            resourceInfoDto.setName(resourceName+delimetr);
+            resourceInfoDto.setType(ResourceType.DIRECTORY);
         }
 
         return resourceInfoDto;
     }
 
     @SneakyThrows
-    public void deleteResource(String userFolder, String path) {
+    public void deleteResource(String path) {
 
         List<DeleteObject> list = new ArrayList<>();
 
         try {
             GetObjectResponse file = minioClient.getObject(GetObjectArgs.builder()
                     .bucket(usersBucket)
-                    .object(userFolder + path)
+                    .object(path)
                     .build());
 
-            list.add(new DeleteObject(userFolder + path));
+            list.add(new DeleteObject(path));
         } catch (ErrorResponseException e) {
 
-            if (!isFolderExist(userFolder, path)) {
+            if (!isFolderExist( path)) {
                 throw new ResourceNotFoundException();
             }
 
             Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(usersBucket)
-                    .prefix(userFolder + path + '/')
+                    .prefix(path + '/')
                     .build());
 
             for (Result<Item> result : results) {
@@ -130,11 +138,11 @@ public class ResourceService {
 
     }
 
-    public boolean isFolderExist(String userFolder, String path) {
+    public boolean isFolderExist(String path) {
 
         return minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(usersBucket)
-                .prefix(userFolder + path + '/')
+                .prefix(path + '/')
                 .maxKeys(1)
                 .build()).iterator().hasNext();
 

@@ -26,7 +26,7 @@ public class ResourceController {
 
         String userFolder = "user-%s-files/".formatted(userDetails.getId());
 
-        ResourceInfoDto resourceInfo = resourceService.getResourceInfo(userFolder, path);
+        ResourceInfoDto resourceInfo = resourceService.getResourceInfo(userFolder+path);
 
         return new ResponseEntity<>(resourceInfo, HttpStatus.OK);
     }
@@ -37,7 +37,7 @@ public class ResourceController {
 
         String userFolder = "user-%s-files/".formatted(userDetails.getId());
 
-        resourceService.deleteResource(userFolder, path);
+        resourceService.deleteResource(userFolder+ path);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
