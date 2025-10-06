@@ -28,7 +28,7 @@ public class DirectoryController {
 
         String userFolder = "user-%s-files/".formatted(userDetails.getId());
 
-        List<ResourceInfoDto> resourceInfoDtoList = directoryService.getDirectoryInfo(userFolder, path);
+        List<ResourceInfoDto> resourceInfoDtoList = directoryService.getDirectoryInfo(userFolder+path);
 
         return new ResponseEntity<>(resourceInfoDtoList, HttpStatus.OK);
 

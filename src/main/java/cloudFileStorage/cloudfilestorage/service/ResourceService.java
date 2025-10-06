@@ -45,7 +45,6 @@ public class ResourceService {
 
     }
 
-    @SneakyThrows
     public ResourceInfoDto getResourceInfo(String path) {
 
         String separator = "/";
@@ -96,7 +95,6 @@ public class ResourceService {
 
         try {
             minioClientService.getObject(usersBucket, path);
-
             objectsToDelete.add(new DeleteObject(path));
         } catch (ErrorResponseException e) {
 
@@ -107,8 +105,7 @@ public class ResourceService {
             Iterable<Result<Item>> results = minioClientService.listObjects(usersBucket, path, true);
 
             for (Result<Item> result : results) {
-                Item item = result.get();
-                String itemName = item.objectName();
+                String itemName = result.get().objectName();
                 objectsToDelete.add(new DeleteObject(itemName));
             }
         }

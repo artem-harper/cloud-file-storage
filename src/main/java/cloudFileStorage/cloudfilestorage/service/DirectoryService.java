@@ -18,21 +18,17 @@ import java.util.List;
 public class DirectoryService {
 
     private final ResourceService resourceService;
-    private final MinioClient minioClient;
+    private final MinioClientService minioClientService;
 
     @Value("${minio.root-bucket}")
     private String usersBucket;
 
     @SneakyThrows
-    public List<ResourceInfoDto> getDirectoryInfo(String userFolder, String path) {
+    public List<ResourceInfoDto> getDirectoryInfo(String path) {
 
         List<ResourceInfoDto> resourceInfoDtoList = new ArrayList<>();
 
-        Iterable<Result<Item>> listObjects = minioClient.listObjects(ListObjectsArgs.builder()
-                .bucket(usersBucket)
-                .prefix(userFolder + path)
-                .recursive(false)
-                .build());
+        Iterable<Result<Item>> listObjects = minioClientService.listObjects(usersBucket, path, false);
 
         for (Result<Item> result : listObjects) {
 
