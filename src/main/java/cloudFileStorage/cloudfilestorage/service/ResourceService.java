@@ -10,7 +10,6 @@ import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +25,8 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class ResourceService {
 
-
     private final MinioClient minioClient;
-    private final ModelMapper modelMapper;
+    private final MinioClientService minioClientService;
 
     @Value("${minio.root-bucket}")
     private String usersBucket;
@@ -50,18 +48,19 @@ public class ResourceService {
     @SneakyThrows
     public ResourceInfoDto getResourceInfo(String path) {
 
+        String separator = "/";
 
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.lastIndexOf("/"));
+
+        if (path.endsWith(separator)) {
+            path = path.substring(0, path.lastIndexOf(separator));
         }
 
-        char delimetr = '/';
-        int lastIndex = path.lastIndexOf(delimetr);
+        int lastIndex = path.lastIndexOf(separator);
         String resourceName = path.substring(lastIndex + 1);
-        String resourcePath = path.substring(path.indexOf(delimetr) + 1, path.lastIndexOf(delimetr) + 1);
+        String resourcePath = path.substring(path.indexOf(separator) + 1, path.lastIndexOf(separator) + 1);
 
         if (resourcePath.isEmpty()) {
-            resourcePath = "/";
+            resourcePath = separator;
         }
 
         ResourceInfoDto resourceInfoDto = ResourceInfoDto.builder()
@@ -70,22 +69,19 @@ public class ResourceService {
                 .build();
 
         try {
-            long fileSize = minioClient.statObject(StatObjectArgs.builder()
-                            .bucket(usersBucket)
-                            .object(path)
-                            .build())
-                    .size();
+
+            long fileSize = minioClientService.statObject(usersBucket, path).size();
 
             resourceInfoDto.setSize(fileSize);
             resourceInfoDto.setType(ResourceType.FILE);
 
         } catch (ErrorResponseException e) {
 
-            if (!isFolderExist(path)) {
+            if (!minioClientService.isFolderExist(usersBucket, path)) {
                 throw new ResourceNotFoundException();
             }
 
-            resourceInfoDto.setName(resourceName + delimetr);
+            resourceInfoDto.setName(resourceName + separator);
             resourceInfoDto.setType(ResourceType.DIRECTORY);
         }
 
@@ -96,41 +92,31 @@ public class ResourceService {
     public void deleteResource(String path) {
 
 
-        List<DeleteObject> list = new ArrayList<>();
+        List<DeleteObject> objectsToDelete = new ArrayList<>();
 
         try {
-            GetObjectResponse file = minioClient.getObject(GetObjectArgs.builder()
-                    .bucket(usersBucket)
-                    .object(path)
-                    .build());
+            minioClientService.getObject(usersBucket, path);
 
-            list.add(new DeleteObject(path));
+            objectsToDelete.add(new DeleteObject(path));
         } catch (ErrorResponseException e) {
 
-            if (!isFolderExist(path)) {
+            if (!minioClientService.isFolderExist(usersBucket, path)) {
                 throw new ResourceNotFoundException();
             }
 
-
-            Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder()
-                    .bucket(usersBucket)
-                    .prefix(path)
-                    .build());
+            Iterable<Result<Item>> results = minioClientService.listObjects(usersBucket, path, true);
 
             for (Result<Item> result : results) {
                 Item item = result.get();
                 String itemName = item.objectName();
-                list.add(new DeleteObject(itemName));
+                objectsToDelete.add(new DeleteObject(itemName));
             }
         }
 
-        Iterable<Result<DeleteError>> results = minioClient.removeObjects(RemoveObjectsArgs.builder()
-                .bucket(usersBucket)
-                .objects(list)
-                .build());
+        Iterable<Result<DeleteError>> results = minioClientService.removeObjects(usersBucket, objectsToDelete);
 
         for (Result<DeleteError> result : results) {
-            DeleteError deleteError = result.get();
+            result.get();
         }
     }
 
@@ -142,23 +128,15 @@ public class ResourceService {
 
         try {
 
-            return minioClient.getObject(GetObjectArgs.builder()
-                    .bucket(usersBucket)
-                    .object(path)
-                    .build()).readAllBytes();
+            return minioClientService.getObject(usersBucket, path).readAllBytes();
 
         } catch (ErrorResponseException e) {
 
-            if (!isFolderExist(path)) {
+            if (!minioClientService.isFolderExist(usersBucket, path)) {
                 throw new ResourceNotFoundException();
             }
 
-            Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder()
-                    .bucket(usersBucket)
-                    .prefix(path)
-                    .recursive(true)
-                    .build());
-
+            Iterable<Result<Item>> results = minioClientService.listObjects(usersBucket, path, true);
 
             for (Result<Item> result : results) {
                 Item item = result.get();
@@ -167,31 +145,17 @@ public class ResourceService {
                 String entryName = resourceName.substring(path.length());
                 zos.putNextEntry(new ZipEntry(entryName));
 
-                try (InputStream is = minioClient.getObject(
-                        GetObjectArgs.builder().bucket(usersBucket).object(resourceName).build())) {
+                try (InputStream is = minioClientService.getObject(usersBucket, resourceName)) {
+
                     is.transferTo(zos);
                 }
 
                 zos.closeEntry();
-
-
-
             }
             zos.finish();
         }
 
         return baos.toByteArray();
     }
-
-    public boolean isFolderExist(String path) {
-
-        return minioClient.listObjects(ListObjectsArgs.builder()
-                .bucket(usersBucket)
-                .prefix(path)
-                .maxKeys(1)
-                .build()).iterator().hasNext();
-
-    }
-
 
 }

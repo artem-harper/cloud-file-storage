@@ -58,7 +58,9 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .logout((logout) -> logout.logoutUrl("/api/auth/sign-out")
-                        .logoutSuccessHandler(logoutSuccessHandler()))
+                        .logoutSuccessHandler(logoutSuccessHandler())
+                        .invalidateHttpSession(true)
+                )
                 .userDetailsService(userDetailsService)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(customAuthenticationEntryPoint)

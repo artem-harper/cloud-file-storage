@@ -47,6 +47,7 @@ public class AuthService {
         Authentication authenticate = authenticationManager.authenticate(authentication);
 
         SecurityContextHolder.getContext().setAuthentication(authenticate);
+
         return modelMapper.map(authenticate.getPrincipal(), SignedUserDto.class);
     }
 
