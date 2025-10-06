@@ -27,14 +27,17 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final ResourceService resourceService;
 
-    public SignedUserDto signUpUser(AuthUserDto authUserDto){
+    public SignedUserDto signUpUser(AuthUserDto authUserDto) {
 
         if (userRepository.findByUsername(authUserDto.getUsername()).isPresent()) {
             throw new UserAlreadyExistException();
         }
 
-        authUserDto.setPassword(passwordEncoder.encode(authUserDto.getPassword()));
-        User signedUser = userRepository.save(modelMapper.map(authUserDto, User.class));
+        User signUser = modelMapper.map(authUserDto, User.class);
+        signUser.setPassword(passwordEncoder.encode(signUser.getPassword()));
+
+        User signedUser = userRepository.save(signUser);
+        saveUserInSecurityContext(authUserDto.getUsername(), authUserDto.getPassword());
 
         resourceService.createUserFolder(signedUser.getId());
 
@@ -42,13 +45,19 @@ public class AuthService {
     }
 
     public SignedUserDto signInUser(AuthUserDto authUserDto) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(authUserDto.getUsername(), authUserDto.getPassword());
 
-        Authentication authenticate = authenticationManager.authenticate(authentication);
+        Authentication authentication = saveUserInSecurityContext(authUserDto.getUsername(), authUserDto.getPassword());
 
-        SecurityContextHolder.getContext().setAuthentication(authenticate);
-
-        return modelMapper.map(authenticate.getPrincipal(), SignedUserDto.class);
+        return modelMapper.map(authentication.getPrincipal(), SignedUserDto.class);
     }
 
+    private Authentication saveUserInSecurityContext(String username, String password) {
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(username, password);
+        Authentication authenticate = authenticationManager.authenticate(authentication);
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+
+        return authenticate;
+
+    }
 }
