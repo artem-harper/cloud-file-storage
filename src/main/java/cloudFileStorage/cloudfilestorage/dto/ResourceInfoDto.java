@@ -15,6 +15,7 @@ public class ResourceInfoDto {
 
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     long size;
+
     ResourceType type;
 
 }

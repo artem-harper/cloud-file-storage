@@ -34,11 +34,11 @@ public class DirectoryService {
                 .recursive(false)
                 .build());
 
-        for (Result<Item> result: listObjects){
+        for (Result<Item> result : listObjects) {
 
             String resourceName = result.get().objectName();
 
-            if (resourceName.substring(resourceName.indexOf("/")+1).isEmpty()){
+            if (resourceName.substring(resourceName.indexOf("/") + 1).isEmpty()) {
                 continue;
             }
 
