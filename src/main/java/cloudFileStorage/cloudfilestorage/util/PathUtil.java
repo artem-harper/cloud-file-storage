@@ -27,18 +27,22 @@ public class PathUtil {
     }
 
     public String formatPath(String path){
-        String separator = "/";
 
         String formatedPath=path;
 
-        if (path.endsWith(separator)) {
-            formatedPath = path.substring(0, path.lastIndexOf(separator));
+        if (path.endsWith(SEPARATOR)) {
+            formatedPath = path.substring(0, path.lastIndexOf(SEPARATOR));
         }
         return formatedPath;
     }
 
+    public String createUserDirectory(int id){
+
+        return "user-%s-files/".formatted(id);
+    }
+
     public boolean isRootDirectory(String path){
-        if(path.substring(path.indexOf("/") + 1).isEmpty()){
+        if(path.substring(path.indexOf(SEPARATOR) + 1).isEmpty()){
             return true;
         }
         return false;
