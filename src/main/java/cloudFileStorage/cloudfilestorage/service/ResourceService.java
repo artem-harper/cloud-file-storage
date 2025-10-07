@@ -155,4 +155,6 @@ public class ResourceService {
         return baos.toByteArray();
     }
 
+    public void moveOrRenameResource(String s, String s1) {
+    }
 }

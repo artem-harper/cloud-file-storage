@@ -29,21 +29,6 @@ public class ResourceController {
         return new ResponseEntity<>(resourceInfo, HttpStatus.OK);
     }
 
-    @DeleteMapping()
-    public ResponseEntity<Void> deleteResource(@RequestParam("path") String path,
-                                               @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        if (path.startsWith("/")) {
-            path = path.substring(path.indexOf("/") + 1);
-        }
-
-        String userFolder = "user-%s-files/".formatted(userDetails.getId());
-
-        resourceService.deleteResource(userFolder + path);
-
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadResource(@RequestParam("path") String path,
                                                    @AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException {
@@ -57,6 +42,31 @@ public class ResourceController {
         byte[] downloadedResource = resourceService.downloadResource(userFolder + path);
 
         return new ResponseEntity<>(downloadedResource, HttpStatus.OK);
+    }
+
+    @GetMapping("/move")
+    public ResponseEntity<ResourceInfoDto> moveOrRenameResource(@RequestParam("from") String from,
+                                                                @RequestParam("to") String to,
+                                                                @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        String userFolder = "user-%s-files/".formatted(userDetails.getId());
+
+        resourceService.moveOrRenameResource(userFolder+from, userFolder+to);
+    }
+
+    @DeleteMapping()
+    public ResponseEntity<Void> deleteResource(@RequestParam("path") String path,
+                                               @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        if (path.startsWith("/")) {
+            path = path.substring(path.indexOf("/") + 1);
+        }
+
+        String userFolder = "user-%s-files/".formatted(userDetails.getId());
+
+        resourceService.deleteResource(userFolder + path);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }

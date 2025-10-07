@@ -22,10 +22,14 @@ public class MinioClientService {
     @SneakyThrows
     public InputStream getObject(String bucket, String path) throws ErrorResponseException {
 
-        return minioClient.getObject(GetObjectArgs.builder()
+        try (InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(path)
-                .build());
+                .build())) {
+
+            return inputStream;
+
+        }
 
     }
 
@@ -44,6 +48,22 @@ public class MinioClientService {
                 .bucket(bucket)
                 .objects(deleteObjectList)
                 .build());
+    }
+
+    @SneakyThrows
+    public ObjectWriteResponse copyObject(String bucket, String moveFrom, String moveTo) {
+
+        return minioClient.copyObject(CopyObjectArgs.builder()
+                .bucket(bucket)
+                .object(moveFrom)
+                .source(
+                        CopySource.builder()
+                                .bucket(bucket)
+
+                                .build()
+                )
+                .build());
+
     }
 
     @SneakyThrows
