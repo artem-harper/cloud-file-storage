@@ -32,16 +32,17 @@ public class Main {
         List<DeleteObject> list = new ArrayList<>();
 
 
-        minioClient.copyObject(CopyObjectArgs.builder()
+        ObjectWriteResponse objectWriteResponse = minioClient.copyObject(CopyObjectArgs.builder()
                 .bucket(bucket)
-                .object("user-1-files/Дерьмо.txt")
+                .object("user-1-files/pidor/какашка/")
                 .source(
                         CopySource.builder()
                                 .bucket(bucket)
-                                .object("user-1-files/Деплой.txt")
+                                .object("user-1-files/даров/")
                                 .build()
                 )
                 .build());
+
 
 
     }

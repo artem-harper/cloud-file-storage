@@ -37,8 +37,8 @@ public class AuthService {
         signUser.setPassword(passwordEncoder.encode(signUser.getPassword()));
 
         User signedUser = userRepository.save(signUser);
-        saveUserInSecurityContext(authUserDto.getUsername(), authUserDto.getPassword());
 
+        saveUserInSecurityContext(authUserDto.getUsername(), authUserDto.getPassword());
         resourceService.createUserFolder(signedUser.getId());
 
         return modelMapper.map(signedUser, SignedUserDto.class);

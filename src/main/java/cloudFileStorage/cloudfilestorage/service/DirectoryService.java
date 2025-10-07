@@ -1,6 +1,8 @@
 package cloudFileStorage.cloudfilestorage.service;
 
 import cloudFileStorage.cloudfilestorage.dto.ResourceInfoDto;
+import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
+import cloudFileStorage.cloudfilestorage.util.PathUtil;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.Result;
@@ -19,6 +21,8 @@ public class DirectoryService {
 
     private final ResourceService resourceService;
     private final MinioClientService minioClientService;
+    private final PathUtil pathUtil;
+
 
     @Value("${minio.root-bucket}")
     private String usersBucket;
@@ -28,13 +32,17 @@ public class DirectoryService {
 
         List<ResourceInfoDto> resourceInfoDtoList = new ArrayList<>();
 
+        if (!minioClientService.isDirectoryExist(usersBucket, path)){
+            throw new ResourceNotFoundException();
+        }
+
         Iterable<Result<Item>> listObjects = minioClientService.listObjects(usersBucket, path, false);
 
         for (Result<Item> result : listObjects) {
 
             String resourceName = result.get().objectName();
 
-            if (resourceName.substring(resourceName.indexOf("/") + 1).isEmpty()) {
+            if (pathUtil.isRootDirectory(resourceName)) {
                 continue;
             }
 

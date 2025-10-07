@@ -4,9 +4,9 @@ import cloudFileStorage.cloudfilestorage.dto.ResourceInfoDto;
 import cloudFileStorage.cloudfilestorage.dto.ResourceType;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
+import cloudFileStorage.cloudfilestorage.util.PathUtil;
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
-import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +28,7 @@ public class ResourceService {
 
     private final MinioClient minioClient;
     private final MinioClientService minioClientService;
+    private final PathUtil pathUtil;
 
     @Value("${minio.root-bucket}")
     private String usersBucket;
@@ -48,19 +49,10 @@ public class ResourceService {
 
     public ResourceInfoDto getResourceInfo(String path) {
 
-        String separator = "/";
+        String formatPath = pathUtil.formatPath(path);
 
-        if (path.endsWith(separator)) {
-            path = path.substring(0, path.lastIndexOf(separator));
-        }
-
-        int lastIndex = path.lastIndexOf(separator);
-        String resourceName = path.substring(lastIndex + 1);
-        String resourcePath = path.substring(path.indexOf(separator) + 1, path.lastIndexOf(separator) + 1);
-
-        if (resourcePath.isEmpty()) {
-            resourcePath = separator;
-        }
+        String resourceName = pathUtil.getResourceNameFromPath(formatPath);
+        String resourcePath = pathUtil.getResourcePath(formatPath);
 
         ResourceInfoDto resourceInfoDto = ResourceInfoDto.builder()
                 .path(resourcePath)
@@ -69,18 +61,18 @@ public class ResourceService {
 
         try {
 
-            long fileSize = minioClientService.statObject(usersBucket, path).size();
+            long fileSize = minioClientService.statObject(usersBucket, formatPath).size();
 
             resourceInfoDto.setSize(fileSize);
             resourceInfoDto.setType(ResourceType.FILE);
 
         } catch (ErrorResponseException e) {
 
-            if (!minioClientService.isFolderExist(usersBucket, path)) {
+            if (!minioClientService.isDirectoryExist(usersBucket, formatPath)) {
                 throw new ResourceNotFoundException();
             }
 
-            resourceInfoDto.setName(resourceName + separator);
+            resourceInfoDto.setName(resourceName + pathUtil.getSEPARATOR());
             resourceInfoDto.setType(ResourceType.DIRECTORY);
         }
 
@@ -97,7 +89,7 @@ public class ResourceService {
             objectsToDelete.add(new DeleteObject(path));
         } catch (ErrorResponseException e) {
 
-            if (!minioClientService.isFolderExist(usersBucket, path)) {
+            if (!minioClientService.isDirectoryExist(usersBucket, path)) {
                 throw new ResourceNotFoundException();
             }
 
@@ -124,7 +116,7 @@ public class ResourceService {
 
         } catch (ErrorResponseException e) {
 
-            if (!minioClientService.isFolderExist(usersBucket, path)) {
+            if (!minioClientService.isDirectoryExist(usersBucket, path)) {
                 throw new ResourceNotFoundException();
             }
 
@@ -159,9 +151,7 @@ public class ResourceService {
         } catch (ErrorResponseException e) {
 
             String movedResourcePath = minioClientService.copyObject(usersBucket, from, to).object();
-
             minioClientService.removeObjects(usersBucket, List.of(new DeleteObject(from)));
-
             return getResourceInfo(movedResourcePath);
         }
 

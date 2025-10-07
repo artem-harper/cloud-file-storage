@@ -81,7 +81,7 @@ public class MinioClientService {
     }
 
     @SneakyThrows
-    public boolean isFolderExist(String bucket, String path) {
+    public boolean isDirectoryExist(String bucket, String path) {
         return minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(bucket)
                 .prefix(path)
