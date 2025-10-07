@@ -2,6 +2,7 @@ package cloudFileStorage.cloudfilestorage.service;
 
 import cloudFileStorage.cloudfilestorage.dto.ResourceInfoDto;
 import cloudFileStorage.cloudfilestorage.dto.ResourceType;
+import cloudFileStorage.cloudfilestorage.exceptions.ResourceAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
@@ -49,7 +50,6 @@ public class ResourceService {
 
         String separator = "/";
 
-
         if (path.endsWith(separator)) {
             path = path.substring(0, path.lastIndexOf(separator));
         }
@@ -90,7 +90,6 @@ public class ResourceService {
     @SneakyThrows
     public void deleteResource(String path) {
 
-
         List<DeleteObject> objectsToDelete = new ArrayList<>();
 
         try {
@@ -110,11 +109,7 @@ public class ResourceService {
             }
         }
 
-        Iterable<Result<DeleteError>> results = minioClientService.removeObjects(usersBucket, objectsToDelete);
-
-        for (Result<DeleteError> result : results) {
-            result.get();
-        }
+        minioClientService.removeObjects(usersBucket, objectsToDelete);
     }
 
     @SneakyThrows
@@ -155,6 +150,21 @@ public class ResourceService {
         return baos.toByteArray();
     }
 
-    public void moveOrRenameResource(String s, String s1) {
+    @SneakyThrows
+    public ResourceInfoDto moveOrRenameResource(String from, String to) {
+
+        try {
+            minioClientService.getObject(usersBucket, to);
+
+        } catch (ErrorResponseException e) {
+
+            String movedResourcePath = minioClientService.copyObject(usersBucket, from, to).object();
+
+            minioClientService.removeObjects(usersBucket, List.of(new DeleteObject(from)));
+
+            return getResourceInfo(movedResourcePath);
+        }
+
+        throw new ResourceAlreadyExistException();
     }
 }

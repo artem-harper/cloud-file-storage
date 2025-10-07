@@ -51,7 +51,8 @@ public class ResourceController {
 
         String userFolder = "user-%s-files/".formatted(userDetails.getId());
 
-        resourceService.moveOrRenameResource(userFolder+from, userFolder+to);
+        ResourceInfoDto resourceInfoDto = resourceService.moveOrRenameResource(userFolder + from, userFolder + to);
+        return new ResponseEntity<>(resourceInfoDto, HttpStatus.OK);
     }
 
     @DeleteMapping()

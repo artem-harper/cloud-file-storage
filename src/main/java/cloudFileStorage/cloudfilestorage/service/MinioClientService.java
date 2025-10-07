@@ -22,14 +22,12 @@ public class MinioClientService {
     @SneakyThrows
     public InputStream getObject(String bucket, String path) throws ErrorResponseException {
 
-        try (InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
+        InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(path)
-                .build())) {
+                .build());
 
-            return inputStream;
-
-        }
+        return inputStream;
 
     }
 
@@ -43,11 +41,16 @@ public class MinioClientService {
 
     }
 
-    public Iterable<Result<DeleteError>> removeObjects(String bucket, List<DeleteObject> deleteObjectList) {
-        return minioClient.removeObjects(RemoveObjectsArgs.builder()
+    @SneakyThrows
+    public void removeObjects(String bucket, List<DeleteObject> deleteObjectList) {
+        Iterable<Result<DeleteError>> results = minioClient.removeObjects(RemoveObjectsArgs.builder()
                 .bucket(bucket)
                 .objects(deleteObjectList)
                 .build());
+
+        for (Result<DeleteError> result : results) {
+            result.get();
+        }
     }
 
     @SneakyThrows
@@ -55,11 +58,11 @@ public class MinioClientService {
 
         return minioClient.copyObject(CopyObjectArgs.builder()
                 .bucket(bucket)
-                .object(moveFrom)
+                .object(moveTo)
                 .source(
                         CopySource.builder()
                                 .bucket(bucket)
-
+                                .object(moveFrom)
                                 .build()
                 )
                 .build());

@@ -1,5 +1,6 @@
 package cloudFileStorage.cloudfilestorage.controller.utilControllers;
 
+import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
 import cloudFileStorage.cloudfilestorage.exceptions.UserAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.util.ErrorResponseMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +34,4 @@ public class AuthExceptionHandler {
         return new ResponseEntity<>(new ErrorResponseMessage("Неправильный логин или пароль"), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseMessage> unknownExceptionHandle(Exception ex){
-        log.warn("UNKNOWN EXCEPTION");
-        return new ResponseEntity<>(new ErrorResponseMessage(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 }
