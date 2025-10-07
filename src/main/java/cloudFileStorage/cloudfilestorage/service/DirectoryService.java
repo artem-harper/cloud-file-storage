@@ -57,7 +57,7 @@ public class DirectoryService {
     @SneakyThrows
     public void createUserDirectory(Integer id) {
 
-        String userDirectory = pathUtil.createUserDirectory(id);
+        String userDirectory = pathUtil.getUserDirectoryName(id);
 
         minioClient.putObject(
                 PutObjectArgs.builder()

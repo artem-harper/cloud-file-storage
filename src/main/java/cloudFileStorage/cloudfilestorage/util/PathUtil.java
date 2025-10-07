@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class PathUtil {
 
     private final String SEPARATOR = "/";
+    private final String USER_DIRECTORY = "user-%s-files/";
 
     public String getResourceNameFromPath(String path){
 
@@ -26,7 +27,7 @@ public class PathUtil {
         return resourcePath;
     }
 
-    public String formatPath(String path){
+    public String removeLastSlash(String path){
 
         String formatedPath=path;
 
@@ -36,8 +37,14 @@ public class PathUtil {
         return formatedPath;
     }
 
-    public String createUserDirectory(int id){
+    public String removeFirstSlash(String path){
+        if (path.startsWith("/")) {
+            path = path.substring(path.indexOf("/") + 1);
+        }
+        return path;
+    }
 
+    public String getUserDirectoryName(int id){
         return "user-%s-files/".formatted(id);
     }
 

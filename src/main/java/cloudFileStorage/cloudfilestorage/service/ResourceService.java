@@ -5,7 +5,7 @@ import cloudFileStorage.cloudfilestorage.dto.ResourceType;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
 import cloudFileStorage.cloudfilestorage.util.PathUtil;
-import io.minio.*;
+import io.minio.Result;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
@@ -13,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -26,30 +24,16 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class ResourceService {
 
-    private final MinioClient minioClient;
     private final MinioClientService minioClientService;
     private final PathUtil pathUtil;
 
     @Value("${minio.root-bucket}")
     private String usersBucket;
 
-    @SneakyThrows
-    public void createUserFolder(Integer id) {
-
-        String userFolderName = "user-%s-files/".formatted(id);
-
-        minioClient.putObject(
-                PutObjectArgs.builder()
-                        .bucket(usersBucket)
-                        .object(userFolderName)
-                        .stream(new ByteArrayInputStream(new byte[]{}), 0, -1)
-                        .build());
-
-    }
 
     public ResourceInfoDto getResourceInfo(String path) {
 
-        String formatPath = pathUtil.formatPath(path);
+        String formatPath = pathUtil.removeLastSlash(path);
 
         String resourceName = pathUtil.getResourceNameFromPath(formatPath);
         String resourcePath = pathUtil.getResourcePath(formatPath);
@@ -156,5 +140,29 @@ public class ResourceService {
         }
 
         throw new ResourceAlreadyExistException();
+    }
+
+    @SneakyThrows
+    public List<ResourceInfoDto> searchResource(String userDirectory, String query){
+
+        List<ResourceInfoDto> foundResources = new ArrayList<>();
+
+        Iterable<Result<Item>> results = minioClientService.listObjects(usersBucket, userDirectory, true);
+
+        for (Result<Item> itemResult: results){
+            String path = itemResult.get().objectName();
+
+            if (pathUtil.isRootDirectory(path)){
+                continue;
+            }
+
+            String resourceName = pathUtil.getResourceNameFromPath(path).toLowerCase();
+
+            if (resourceName.contains(query.toLowerCase())){
+                foundResources.add(getResourceInfo(path));
+            }
+        }
+
+        return foundResources;
     }
 }

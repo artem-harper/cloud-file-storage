@@ -3,6 +3,7 @@ package cloudFileStorage.cloudfilestorage.controller;
 import cloudFileStorage.cloudfilestorage.dto.ResourceInfoDto;
 import cloudFileStorage.cloudfilestorage.security.UserDetailsImpl;
 import cloudFileStorage.cloudfilestorage.service.DirectoryService;
+import cloudFileStorage.cloudfilestorage.util.PathUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,17 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class DirectoryController {
 
     private final DirectoryService directoryService;
+    private final PathUtil pathUtil;
 
     @GetMapping()
     public ResponseEntity<List<ResourceInfoDto>> getDirectoryInfo(@RequestParam("path") String path,
                                                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        String userFolder = "user-%s-files/".formatted(userDetails.getId());
+        String userFolder = pathUtil.getUserDirectoryName(userDetails.getId());
 
         List<ResourceInfoDto> resourceInfoDtoList = directoryService.getDirectoryInfo(userFolder+path);
 
         return new ResponseEntity<>(resourceInfoDtoList, HttpStatus.OK);
-
     }
-
 }
