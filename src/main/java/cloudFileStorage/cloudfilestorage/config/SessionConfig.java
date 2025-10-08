@@ -11,8 +11,9 @@ import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @Configuration
-@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 3*60*60)
+@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 3 * 60 * 60)
 public class SessionConfig {
+
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
@@ -27,7 +28,7 @@ public class SessionConfig {
     public CookieSerializer cookieSerializer() {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
 
-        serializer.setCookieMaxAge(3*60*60);
+        serializer.setCookieMaxAge(3 * 60 * 60);
         serializer.setCookieName("SESSION");
 
         return serializer;
