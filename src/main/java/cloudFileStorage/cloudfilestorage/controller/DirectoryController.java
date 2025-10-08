@@ -25,8 +25,8 @@ public class DirectoryController {
                                                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         String userFolder = pathUtil.getUserDirectoryName(userDetails.getId());
-
-        List<ResourceInfoDto> resourceInfoDtoList = directoryService.getDirectoryInfo(userFolder+path);
+        String s = pathUtil.removeFirstSlash(path);
+        List<ResourceInfoDto> resourceInfoDtoList = directoryService.getDirectoryInfo(userFolder+s);
 
         return new ResponseEntity<>(resourceInfoDtoList, HttpStatus.OK);
     }

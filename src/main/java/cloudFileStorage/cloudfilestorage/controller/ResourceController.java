@@ -36,8 +36,8 @@ public class ResourceController {
 
     @PostMapping()
     public ResponseEntity<List<ResourceInfoDto>> uploadResource(@RequestParam("path") String path,
-                                                          @RequestParam("object") MultipartFile[] multipartFile,
-                                                          @AuthenticationPrincipal UserDetailsImpl userDetails) {
+                                                                @RequestParam("object") MultipartFile[] multipartFile,
+                                                                @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         String userFolder = pathUtil.getUserDirectoryName(userDetails.getId());
 
@@ -65,9 +65,13 @@ public class ResourceController {
                                                                 @RequestParam("to") String to,
                                                                 @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
+
+        String fromFormatted = pathUtil.removeFirstSlash(from);
+        String toFormatted = pathUtil.removeFirstSlash(to);
+
         String userDirectory = pathUtil.getUserDirectoryName(userDetails.getId());
 
-        ResourceInfoDto resourceInfoDto = resourceService.moveOrRenameResource(userDirectory + from, userDirectory + to);
+        ResourceInfoDto resourceInfoDto = resourceService.moveOrRenameResource(userDirectory + fromFormatted, userDirectory + toFormatted);
         return new ResponseEntity<>(resourceInfoDto, HttpStatus.OK);
     }
 
