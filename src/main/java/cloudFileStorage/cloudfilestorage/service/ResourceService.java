@@ -5,6 +5,8 @@ import cloudFileStorage.cloudfilestorage.dto.ResourceType;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
 import cloudFileStorage.cloudfilestorage.util.PathUtil;
+import io.minio.ObjectWriteResponse;
+import io.minio.PutObjectArgs;
 import io.minio.Result;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.DeleteObject;
@@ -13,7 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +35,7 @@ public class ResourceService {
     @Value("${minio.root-bucket}")
     private String usersBucket;
 
-
+    @SneakyThrows
     public ResourceInfoDto getResourceInfo(String path) {
 
         String formatPath = pathUtil.removeLastSlash(path);
@@ -43,47 +48,45 @@ public class ResourceService {
                 .name(resourceName)
                 .build();
 
-        try {
 
+        if (minioClientService.isFileExist(usersBucket, formatPath)) {
             long fileSize = minioClientService.statObject(usersBucket, formatPath).size();
 
             resourceInfoDto.setSize(fileSize);
             resourceInfoDto.setType(ResourceType.FILE);
-
-        } catch (ErrorResponseException e) {
-
-            if (!minioClientService.isDirectoryExist(usersBucket, formatPath)) {
-                throw new ResourceNotFoundException();
-            }
+        } else if (minioClientService.isDirectoryExist(usersBucket, formatPath)) {
 
             resourceInfoDto.setName(resourceName + pathUtil.getSEPARATOR());
             resourceInfoDto.setType(ResourceType.DIRECTORY);
+        } else {
+            throw new ResourceNotFoundException();
         }
 
         return resourceInfoDto;
     }
+
 
     @SneakyThrows
     public void deleteResource(String path) {
 
         List<DeleteObject> objectsToDelete = new ArrayList<>();
 
-        try {
-            minioClientService.getObject(usersBucket, path);
+
+        if (minioClientService.isFileExist(usersBucket, path)) {
+
             objectsToDelete.add(new DeleteObject(path));
-        } catch (ErrorResponseException e) {
 
-            if (!minioClientService.isDirectoryExist(usersBucket, path)) {
-                throw new ResourceNotFoundException();
-            }
-
+        } else if (minioClientService.isDirectoryExist(usersBucket, path)) {
             Iterable<Result<Item>> results = minioClientService.listObjects(usersBucket, path, true);
 
             for (Result<Item> result : results) {
                 String itemName = result.get().objectName();
                 objectsToDelete.add(new DeleteObject(itemName));
             }
+        } else {
+            throw new ResourceNotFoundException();
         }
+
 
         minioClientService.removeObjects(usersBucket, objectsToDelete);
     }
@@ -94,16 +97,12 @@ public class ResourceService {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ZipOutputStream zos = new ZipOutputStream(baos);
 
-        try {
+
+        if (minioClientService.isFileExist(usersBucket, path)) {
 
             return minioClientService.getObject(usersBucket, path).readAllBytes();
 
-        } catch (ErrorResponseException e) {
-
-            if (!minioClientService.isDirectoryExist(usersBucket, path)) {
-                throw new ResourceNotFoundException();
-            }
-
+        } else if (minioClientService.isDirectoryExist(usersBucket, path)) {
             Iterable<Result<Item>> results = minioClientService.listObjects(usersBucket, path, true);
 
             for (Result<Item> result : results) {
@@ -121,48 +120,59 @@ public class ResourceService {
                 zos.closeEntry();
             }
             zos.finish();
+
+            return baos.toByteArray();
+        } else {
+            throw new ResourceNotFoundException();
         }
 
-        return baos.toByteArray();
     }
 
     @SneakyThrows
     public ResourceInfoDto moveOrRenameResource(String from, String to) {
 
-        try {
-            minioClientService.getObject(usersBucket, to);
-
-        } catch (ErrorResponseException e) {
-
-            String movedResourcePath = minioClientService.copyObject(usersBucket, from, to).object();
-            minioClientService.removeObjects(usersBucket, List.of(new DeleteObject(from)));
-            return getResourceInfo(movedResourcePath);
+        if (minioClientService.isFileExist(usersBucket, to)) {
+            throw new ResourceAlreadyExistException();
         }
 
-        throw new ResourceAlreadyExistException();
+        String movedResourcePath = minioClientService.copyObject(usersBucket, from, to).object();
+        minioClientService.removeObjects(usersBucket, List.of(new DeleteObject(from)));
+        return getResourceInfo(movedResourcePath);
+
     }
 
     @SneakyThrows
-    public List<ResourceInfoDto> searchResource(String userDirectory, String query){
+    public List<ResourceInfoDto> searchResource(String userDirectory, String query) {
 
         List<ResourceInfoDto> foundResources = new ArrayList<>();
 
         Iterable<Result<Item>> results = minioClientService.listObjects(usersBucket, userDirectory, true);
 
-        for (Result<Item> itemResult: results){
+        for (Result<Item> itemResult : results) {
             String path = itemResult.get().objectName();
 
-            if (pathUtil.isRootDirectory(path)){
+            if (pathUtil.isRootDirectory(path)) {
                 continue;
             }
 
             String resourceName = pathUtil.getResourceNameFromPath(path).toLowerCase();
 
-            if (resourceName.contains(query.toLowerCase())){
+            if (resourceName.contains(query.toLowerCase())) {
                 foundResources.add(getResourceInfo(path));
             }
         }
 
         return foundResources;
+    }
+
+    public ResourceInfoDto uploadResource(String path, MultipartFile multipartFile) {
+
+        if (minioClientService.isFileExist(usersBucket, path + multipartFile.getResource().getFilename())) {
+            throw new ResourceAlreadyExistException();
+        }
+
+        ObjectWriteResponse objectWriteResponse = minioClientService.uploadResource(usersBucket, path, multipartFile);
+
+        return getResourceInfo(objectWriteResponse.object());
     }
 }

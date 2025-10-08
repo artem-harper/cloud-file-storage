@@ -6,11 +6,14 @@ import cloudFileStorage.cloudfilestorage.service.ResourceService;
 import cloudFileStorage.cloudfilestorage.util.PathUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -29,6 +32,18 @@ public class ResourceController {
         ResourceInfoDto resourceInfo = resourceService.getResourceInfo(userFolder + path);
 
         return new ResponseEntity<>(resourceInfo, HttpStatus.OK);
+    }
+
+    @PostMapping( consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResourceInfoDto> uploadResource(@RequestParam("path") String path,
+                                                          @RequestParam("object") MultipartFile multipartFile,
+                                                          @AuthenticationPrincipal UserDetailsImpl userDetails){
+        String userFolder = pathUtil.getUserDirectoryName(userDetails.getId());
+
+        ResourceInfoDto resourceInfoDto = resourceService.uploadResource(userFolder + path, multipartFile);
+
+        return new ResponseEntity<>(resourceInfoDto, HttpStatus.CREATED);
+
     }
 
     @GetMapping("/download")
@@ -58,7 +73,6 @@ public class ResourceController {
     @GetMapping("/search")
     public ResponseEntity<List<ResourceInfoDto>> searchResource(@RequestParam("query") String query,
                                                                 @AuthenticationPrincipal UserDetailsImpl userDetails){
-
 
         String userDirectory = pathUtil.getUserDirectoryName(userDetails.getId());
         List<ResourceInfoDto> resourceInfoDtoList = resourceService.searchResource(userDirectory, query);

@@ -2,12 +2,14 @@ package cloudFileStorage.cloudfilestorage.service;
 
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
+import io.minio.errors.MinioException;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.io.InputStream;
@@ -28,6 +30,20 @@ public class MinioClientService {
                 .build());
 
         return inputStream;
+
+    }
+
+
+    @SneakyThrows
+    public ObjectWriteResponse uploadResource(String bucket, String path, MultipartFile multipart) {
+
+        ObjectWriteResponse objectWriteResponse = minioClient.putObject(PutObjectArgs.builder()
+                .bucket(bucket)
+                .object(path+multipart.getResource().getFilename())
+                .stream(multipart.getInputStream(), multipart.getSize(), 10485760)
+                .build());
+
+        return objectWriteResponse;
 
     }
 
@@ -87,7 +103,25 @@ public class MinioClientService {
                 .prefix(path)
                 .maxKeys(1)
                 .build()).iterator().hasNext();
+
     }
 
+    @SneakyThrows
+    public boolean isFileExist(String bucket, String path){
+        try {
+            minioClient.getObject(GetObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(path)
+                    .build());
+
+            return true;
+
+        }catch (ErrorResponseException e){
+            if (e.errorResponse().code().equals("NoSuchKey")){
+                return false;
+            }
+            throw new MinioException();
+        }
+    }
 }
 

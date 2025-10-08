@@ -1,5 +1,7 @@
 server:
   port: 8080
+  tomcat:
+    max-swallow-size: -1
 
 minio:
   endpoint: ${MINIO_ENDPOINT}
@@ -26,6 +28,12 @@ spring:
     redis:
       port: ${REDIS_PORT}
       host: ${REDIS_HOST}
+
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
 
 
   config:
