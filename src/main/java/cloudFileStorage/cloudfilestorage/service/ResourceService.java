@@ -96,11 +96,7 @@ public class ResourceService {
         ZipOutputStream zos = new ZipOutputStream(baos);
 
 
-        if (minioClientService.isFileExist(usersBucket, path)) {
-
-            return minioClientService.getObject(usersBucket, path).readAllBytes();
-
-        } else if (minioClientService.isDirectoryExist(usersBucket, path)) {
+        if (minioClientService.isDirectoryExist(usersBucket, path)) {
             Iterable<Result<Item>> results = minioClientService.listObjects(usersBucket, path, true);
 
             for (Result<Item> result : results) {
@@ -120,6 +116,12 @@ public class ResourceService {
             zos.finish();
 
             return baos.toByteArray();
+        } else if (minioClientService.isFileExist(usersBucket, path)) {
+
+            try (InputStream is = minioClientService.getObject(usersBucket, path)) {
+                return is.readAllBytes();
+            }
+
         } else {
             throw new ResourceNotFoundException();
         }

@@ -1,5 +1,6 @@
 package cloudFileStorage.cloudfilestorage.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -15,11 +16,16 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 public class SessionConfig {
 
 
+    @Value("${spring.data.redis.host}")
+    private String redisHost;
+    @Value("${spring.data.redis.port}")
+    private int redisPort;
+
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName("redis");
-        config.setPort(6379);
+        config.setHostName(redisHost);
+        config.setPort(redisPort);
         config.setPassword(RedisPassword.of("pass"));
         return new LettuceConnectionFactory(config);
     }
