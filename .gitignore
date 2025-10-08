@@ -6,6 +6,7 @@ target/
 .env.dev
 redisdata
 src/main/java/cloudFileStorage/cloudfilestorage/Main.java
+.env.prod
 
 ### STS ###
 .apt_generated

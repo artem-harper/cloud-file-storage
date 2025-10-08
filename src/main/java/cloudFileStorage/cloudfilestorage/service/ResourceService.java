@@ -13,6 +13,7 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -69,17 +70,17 @@ public class ResourceService {
         List<DeleteObject> objectsToDelete = new ArrayList<>();
 
 
-        if (minioClientService.isFileExist(usersBucket, path)) {
-
-            objectsToDelete.add(new DeleteObject(path));
-
-        } else if (minioClientService.isDirectoryExist(usersBucket, path)) {
+        if (minioClientService.isDirectoryExist(usersBucket, path)) {
             Iterable<Result<Item>> results = minioClientService.listObjects(usersBucket, path, true);
 
             for (Result<Item> result : results) {
                 String itemName = result.get().objectName();
                 objectsToDelete.add(new DeleteObject(itemName));
             }
+        } else if (minioClientService.isFileExist(usersBucket, path)) {
+
+            objectsToDelete.add(new DeleteObject(path));
+
         } else {
             throw new ResourceNotFoundException();
         }
