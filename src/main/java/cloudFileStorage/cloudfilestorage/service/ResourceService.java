@@ -5,10 +5,7 @@ import cloudFileStorage.cloudfilestorage.dto.ResourceType;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceAlreadyExistException;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
 import cloudFileStorage.cloudfilestorage.util.PathUtil;
-import io.minio.ObjectWriteResponse;
-import io.minio.PutObjectArgs;
 import io.minio.Result;
-import io.minio.errors.ErrorResponseException;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +13,7 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -166,8 +161,6 @@ public class ResourceService {
     }
 
     public List<ResourceInfoDto> uploadResource(String path, MultipartFile[] multipartFileArr) {
-
-
 
         List<ResourceInfoDto> resourceInfoDtoList = new ArrayList<>();
 

@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
@@ -48,7 +49,6 @@ public class MinioClientService {
         return objectWriteResponse;
 
     }
-
 
     @SneakyThrows
     public StatObjectResponse statObject(String bucket, String path) throws ErrorResponseException {
@@ -98,6 +98,17 @@ public class MinioClientService {
                 .recursive(recursive)
                 .build());
 
+    }
+
+    @SneakyThrows
+    public ObjectWriteResponse createEmptyDirectory(String bucket, String path){
+
+        return minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(bucket)
+                        .object(path)
+                        .stream(new ByteArrayInputStream(new byte[]{}), 0, -1)
+                        .build());
     }
 
     @SneakyThrows

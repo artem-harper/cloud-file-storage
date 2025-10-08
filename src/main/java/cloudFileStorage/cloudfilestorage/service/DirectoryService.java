@@ -4,6 +4,7 @@ import cloudFileStorage.cloudfilestorage.dto.ResourceInfoDto;
 import cloudFileStorage.cloudfilestorage.exceptions.ResourceNotFoundException;
 import cloudFileStorage.cloudfilestorage.util.PathUtil;
 import io.minio.MinioClient;
+import io.minio.ObjectWriteResponse;
 import io.minio.PutObjectArgs;
 import io.minio.Result;
 import io.minio.messages.Item;
@@ -44,7 +45,7 @@ public class DirectoryService {
 
             String resourceName = result.get().objectName();
 
-            if (pathUtil.isRootDirectory(resourceName)) {
+            if (pathUtil.isRootDirectory(resourceName) || path.equals(resourceName)) {
                 continue;
             }
 
@@ -52,6 +53,13 @@ public class DirectoryService {
         }
 
         return resourceInfoDtoList;
+    }
+
+    public ResourceInfoDto createEmptyDirectory(String path) {
+
+        ObjectWriteResponse emptyDirectory = minioClientService.createEmptyDirectory(usersBucket, path);
+
+        return resourceService.getResourceInfo(emptyDirectory.object());
     }
 
     @SneakyThrows
