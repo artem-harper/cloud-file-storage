@@ -165,14 +165,22 @@ public class ResourceService {
         return foundResources;
     }
 
-    public ResourceInfoDto uploadResource(String path, MultipartFile multipartFile) {
+    public List<ResourceInfoDto> uploadResource(String path, MultipartFile[] multipartFileArr) {
 
-        if (minioClientService.isFileExist(usersBucket, path + multipartFile.getResource().getFilename())) {
-            throw new ResourceAlreadyExistException();
+
+
+        List<ResourceInfoDto> resourceInfoDtoList = new ArrayList<>();
+
+        for (MultipartFile multipartFile : multipartFileArr) {
+
+            if (minioClientService.isFileExist(usersBucket, path+multipartFile.getResource().getFilename()) || minioClientService.isFileExist(usersBucket, path+multipartFile.getResource().getFilename())) {
+                throw new ResourceAlreadyExistException();
+            }
+
+            String object = minioClientService.uploadResource(usersBucket, path, multipartFile).object();
+            resourceInfoDtoList.add(getResourceInfo(object));
         }
 
-        ObjectWriteResponse objectWriteResponse = minioClientService.uploadResource(usersBucket, path, multipartFile);
-
-        return getResourceInfo(objectWriteResponse.object());
+        return resourceInfoDtoList;
     }
 }

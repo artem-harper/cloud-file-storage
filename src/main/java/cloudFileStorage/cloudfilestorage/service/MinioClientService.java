@@ -8,13 +8,15 @@ import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
 import java.io.InputStream;
+import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class MinioClientService {
 
@@ -39,13 +41,14 @@ public class MinioClientService {
 
         ObjectWriteResponse objectWriteResponse = minioClient.putObject(PutObjectArgs.builder()
                 .bucket(bucket)
-                .object(path+multipart.getResource().getFilename())
+                .object(path + multipart.getResource().getFilename())
                 .stream(multipart.getInputStream(), multipart.getSize(), 10485760)
                 .build());
 
         return objectWriteResponse;
 
     }
+
 
     @SneakyThrows
     public StatObjectResponse statObject(String bucket, String path) throws ErrorResponseException {
@@ -65,7 +68,8 @@ public class MinioClientService {
                 .build());
 
         for (Result<DeleteError> result : results) {
-            result.get();
+            DeleteError deleteError = result.get();
+            log.error("FAILED TO DELETE: {}", deleteError.message());
         }
     }
 
@@ -107,7 +111,7 @@ public class MinioClientService {
     }
 
     @SneakyThrows
-    public boolean isFileExist(String bucket, String path){
+    public boolean isFileExist(String bucket, String path) {
         try {
             minioClient.getObject(GetObjectArgs.builder()
                     .bucket(bucket)
@@ -116,8 +120,8 @@ public class MinioClientService {
 
             return true;
 
-        }catch (ErrorResponseException e){
-            if (e.errorResponse().code().equals("NoSuchKey")){
+        } catch (ErrorResponseException e) {
+            if (e.errorResponse().code().equals("NoSuchKey")) {
                 return false;
             }
             throw new MinioException();

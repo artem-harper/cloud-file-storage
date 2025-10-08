@@ -34,15 +34,16 @@ public class ResourceController {
         return new ResponseEntity<>(resourceInfo, HttpStatus.OK);
     }
 
-    @PostMapping( consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResourceInfoDto> uploadResource(@RequestParam("path") String path,
-                                                          @RequestParam("object") MultipartFile multipartFile,
-                                                          @AuthenticationPrincipal UserDetailsImpl userDetails){
+    @PostMapping()
+    public ResponseEntity<List<ResourceInfoDto>> uploadResource(@RequestParam("path") String path,
+                                                          @RequestParam("object") MultipartFile[] multipartFile,
+                                                          @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
         String userFolder = pathUtil.getUserDirectoryName(userDetails.getId());
 
-        ResourceInfoDto resourceInfoDto = resourceService.uploadResource(userFolder + path, multipartFile);
+        List<ResourceInfoDto> resourceInfoDtoList = resourceService.uploadResource(userFolder + path, multipartFile);
 
-        return new ResponseEntity<>(resourceInfoDto, HttpStatus.CREATED);
+        return new ResponseEntity<>(resourceInfoDtoList, HttpStatus.CREATED);
 
     }
 
@@ -72,7 +73,7 @@ public class ResourceController {
 
     @GetMapping("/search")
     public ResponseEntity<List<ResourceInfoDto>> searchResource(@RequestParam("query") String query,
-                                                                @AuthenticationPrincipal UserDetailsImpl userDetails){
+                                                                @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         String userDirectory = pathUtil.getUserDirectoryName(userDetails.getId());
         List<ResourceInfoDto> resourceInfoDtoList = resourceService.searchResource(userDirectory, query);
