@@ -29,7 +29,19 @@ public class AuthControllerTest extends BaseIntegrationTest{
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
     }
 
+    @Test
+    @SneakyThrows
+    public void securityShouldThrow200CodeForSignUpUser(){
 
+        AuthUserDto authUserDto = new AuthUserDto("user1", "12345");
+
+        mockMvc.perform(post("http://localhost:8080/api/auth/sign-up")
+                        .content(objectMapper.writeValueAsString(authUserDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+    }
 }
 
 

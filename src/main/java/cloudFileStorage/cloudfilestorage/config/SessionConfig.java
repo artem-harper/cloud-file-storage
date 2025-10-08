@@ -18,8 +18,8 @@ public class SessionConfig {
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName("localhost");
-        config.setPort(6380);
+        config.setHostName("redis");
+        config.setPort(6379);
         config.setPassword(RedisPassword.of("pass"));
         return new LettuceConnectionFactory(config);
     }
