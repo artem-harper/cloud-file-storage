@@ -27,12 +27,10 @@ public class MinioClientService {
     @SneakyThrows
     public InputStream getObject(String bucket, String path) throws ErrorResponseException {
 
-        InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
+        return minioClient.getObject(GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(path)
                 .build());
-
-        return inputStream;
 
     }
 
@@ -40,13 +38,11 @@ public class MinioClientService {
     @SneakyThrows
     public ObjectWriteResponse uploadResource(String bucket, String path, MultipartFile multipart) {
 
-        ObjectWriteResponse objectWriteResponse = minioClient.putObject(PutObjectArgs.builder()
+        return minioClient.putObject(PutObjectArgs.builder()
                 .bucket(bucket)
                 .object(path + multipart.getResource().getFilename())
                 .stream(multipart.getInputStream(), multipart.getSize(), 10485760)
                 .build());
-
-        return objectWriteResponse;
 
     }
 
@@ -89,7 +85,6 @@ public class MinioClientService {
 
     }
 
-    @SneakyThrows
     public Iterable<Result<Item>> listObjects(String bucket, String path, boolean recursive) {
 
         return minioClient.listObjects(ListObjectsArgs.builder()
